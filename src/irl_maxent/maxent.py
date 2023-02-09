@@ -311,7 +311,7 @@ def local_causal_action_probabilities(p_transition, terminal, reward, discount, 
 
     # set up terminal reward function
     if len(terminal) == n_states:
-        reward_terminal = np.array(terminal, dtype=np.float)
+        reward_terminal = np.array(terminal, dtype=float)
     else:
         reward_terminal = -np.inf * np.ones(n_states)
         reward_terminal[terminal] = 0.0
@@ -333,7 +333,7 @@ def local_causal_action_probabilities(p_transition, terminal, reward, discount, 
             v = softmax(v, q[:, a])
 
         # for some reason numpy chooses an array of objects after reduction, force floats here
-        v = np.array(v, dtype=np.float)
+        v = np.array(v, dtype=float)
 
         delta = np.max(np.abs(v - v_old))
 

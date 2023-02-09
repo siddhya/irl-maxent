@@ -72,3 +72,5 @@ def test_probabilities_icy_gridworld(size=5):
         size: The size of the world to be used for testing.
     """
     check_zero_probabilities(gridworld.IcyGridWorld(size))
+
+test_probabilities_gridworld()

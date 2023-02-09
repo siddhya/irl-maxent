@@ -1,4 +1,5 @@
 from . import gridworld
+from . import ipdworld
 from . import maxent
 from . import optimizer
 from . import plot
