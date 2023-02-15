@@ -35,13 +35,12 @@ class IPDWorld:
         self.actions = ['C', 'D']
         self.states = []
         
-        # initial states
-        # FIXME: Currently opponant starts. We can also make it so
-        # so that agent starts.
-        for opp_curr_act in self.actions:
-            self.states.append({"opp_last_act": 0,
-                                    "agt_last_act": 0,
-                                    "opp_curr_act": opp_curr_act})
+        # initial state
+        # FIXME: Currently opponant starts with cooperate.
+        # We can also make it so that agent starts.
+        self.states.append({"opp_last_act": 0,
+                            "agt_last_act": 0,
+                            "opp_curr_act": 'C'})
         # states
         for opp_last_act in self.actions:
             for agt_last_act in self.actions:
@@ -104,16 +103,29 @@ class IPDWorld:
         Returns:
             The coordinate-feature-matrix for the specified world.
         """
-        f = np.zeros(shape=(self.n_states, 1 + (self.memory * 2) + 1))
+        # 2 features each for every memory slot and 1 feature for initial state
+        f = np.zeros(shape=(self.n_states, 1 + (self.memory * 2 * 2) + 2))
         for i, s in enumerate(self.states):
             if s["opp_last_act"] == 0:
                 #initial state
                 f[i][0] = 1
-                f[i][3] = 0 if s["opp_curr_act"] == 'C' else 1
+                if s["opp_curr_act"] == 'C':
+                    f[i][5] = 1
+                else:
+                    f[i][6] = 1
             else:
-                f[i][1] = 0 if s["opp_last_act"] == 'C' else 1
-                f[i][2] = 0 if s["agt_last_act"] == 'C' else 1
-                f[i][3] = 0 if s["opp_curr_act"] == 'C' else 1
+                if s["opp_last_act"] == 'C':
+                    f[i][1] = 1
+                else:
+                    f[i][2] = 1
+                if s["agt_last_act"] == 'C':
+                    f[i][3] = 1
+                else:
+                    f[i][4] = 1
+                if s["opp_curr_act"] == 'C':
+                    f[i][5] = 1
+                else:
+                    f[i][6] = 1
         return f
 
     def __repr__(self):
@@ -163,4 +175,52 @@ class RandomIPDWorld(IPDWorld):
                   "agt_last_act": a,
                   # Opponent is playing uniform random policy
                   "opp_curr_act": np.random.choice(self.actions)}
+        return self._values_to_index(s_next)
+
+class TitTatIPDWorld(IPDWorld):
+    """
+    The opponent is a tit-for-tat player who chooses cooprate
+    or defect if agent chooses cooerate or defect respectively.
+    """
+    def _transition_prob(self, s_from_idx, s_to_idx, a_idx):
+        """
+        Compute the transition probability for a single transition.
+
+        Args:
+            s_from: The state in which the transition originates.
+            s_to: The target-state of the transition.
+            a: The action via which the target state should be reached.
+
+        Returns:
+            The transition probability from `s_from` to `s_to` when taking
+            action `a`.
+        """
+        s_from, a, s_to = self._index_to_values(s_from_idx, a_idx, s_to_idx)
+        if not self._is_legal(s_from, a, s_to):
+            return 0.0
+        # tit-for-tat
+        if s_to['opp_curr_act'] == a:
+            return 1.0
+        return 0.0
+
+    def state_index_transition(self, s_idx, a_idx):
+        """
+        Perform action `a` at state `s` and return the intended next state.
+
+        Does not take into account the transition probabilities. Instead it
+        just returns the intended outcome of the given action taken at the
+        given state, i.e. the outcome in case the action succeeds.
+
+        Args:
+            s: The state at which the action should be taken.
+            a: The action that should be taken.
+
+        Returns:
+            The next state as implied by the given action and state.
+        """
+        s, a = self._index_to_values(s_idx, a_idx)
+        s_next = {"opp_last_act": s["opp_curr_act"],
+                  "agt_last_act": a,
+                  # Opponent is playing tit-for-tat
+                  "opp_curr_act": a}
         return self._values_to_index(s_next)

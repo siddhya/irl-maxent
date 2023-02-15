@@ -16,7 +16,7 @@ def setup_mdp():
     Set-up our MDP/IPDWorld
     """
     # create our world
-    world = W.RandomIPDWorld()
+    world = W.TitTatIPDWorld()
 
     # set up the reward function
     reward = np.zeros(world.n_states)
@@ -30,10 +30,10 @@ def setup_mdp():
         elif world.states[i]['agt_last_act'] == 'D' and world.states[i]['opp_curr_act'] == 'D':
             reward[i] = 1
 
-    # Terminate when both cooperate
+    # Terminate when all three memory places are cooperate
     terminal = []
     for i, s in enumerate(world.states):
-        if s["agt_last_act"] == 'C' and s["opp_curr_act"] == 'C':
+        if s["opp_last_act"] == 'C' and s["agt_last_act"] == 'C' and s["opp_curr_act"] == 'C':
             terminal.append(i)
 
     return world, reward, terminal
@@ -50,8 +50,7 @@ def generate_trajectories(world, reward, terminal):
 
     # set up initial probabilities for trajectory generation
     initial = np.zeros(world.n_states)
-    initial[0] = 0.5
-    initial[1] = 0.5
+    initial[0] = 1
 
     # generate trajectories
     value = S.value_iteration(world.p_transition, reward, discount)
