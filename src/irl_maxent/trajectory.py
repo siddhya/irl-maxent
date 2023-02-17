@@ -73,7 +73,9 @@ def generate_trajectory(world, policy, start, final):
     state = start
 
     trajectory = []
-    while state not in final:
+    #while state not in final:
+    # Infinite horizon so use iterations
+    for _ in range(final):
         action = policy(state)
 
         next_s = range(world.n_states)

@@ -30,11 +30,8 @@ def setup_mdp():
         elif world.states[i]['agt_last_act'] == 'D' and world.states[i]['opp_curr_act'] == 'D':
             reward[i] = 1
 
-    # Terminate when all three memory places are cooperate
-    terminal = []
-    for i, s in enumerate(world.states):
-        if s["opp_last_act"] == 'C' and s["agt_last_act"] == 'C' and s["opp_curr_act"] == 'C':
-            terminal.append(i)
+    # Infinite horizon so set the number of iterations to run
+    terminal = 10
 
     return world, reward, terminal
 
