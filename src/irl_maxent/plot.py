@@ -195,3 +195,20 @@ def plot_trajectory(ax, world, trajectory, **kwargs):
     x, y = zip(*xy)
 
     return ax.plot(x, y, **kwargs)
+
+def plot_rewards(fig, orig, maxent, causal):
+    fig_reward = fig.add_subplot(311)
+    fig_reward.title.set_text('Original Reward')
+    fig_reward.imshow(np.reshape(orig, (1, -1)), cmap='Purples')
+    fig_reward.set_xlabel('states')
+    fig_reward.get_yaxis().set_visible(False)
+
+    fig_reward_maxent = fig.add_subplot(312)
+    fig_reward_maxent.title.set_text('Recovered Reward - MaxEnt')
+    fig_reward_maxent.imshow(np.reshape(maxent, (1, -1)), cmap='Greens')
+    fig_reward_maxent.get_yaxis().set_visible(False)
+
+    fig_reward_maxcausal = fig.add_subplot(313)
+    fig_reward_maxcausal.title.set_text('Recovered Reward - MaxEnt Causal')
+    fig_reward_maxcausal.imshow(np.reshape(causal, (1, -1)), cmap='Oranges')
+    fig_reward_maxcausal.get_yaxis().set_visible(False)

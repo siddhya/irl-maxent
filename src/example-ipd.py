@@ -9,7 +9,7 @@ from irl_maxent import optimizer as O
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+import pandas as pd
 
 def setup_mdp():
     """
@@ -32,6 +32,11 @@ def setup_mdp():
 
     # Infinite horizon so set the number of iterations to run
     terminal = 10
+    # Terminate when all three memory places are cooperate
+    terminal = []
+    for i, s in enumerate(world.states):
+        if s["opp_last_act"] == 'C' and s["agt_last_act"] == 'C' and s["opp_curr_act"] == 'C':
+            terminal.append(i)
 
     return world, reward, terminal
 
@@ -142,8 +147,18 @@ def main():
     #P.plot_state_values(ax, world, reward_maxcausal, **style)
     #plt.draw()
 
-    plt.show()
+    #plt.show()
+    output = pd.DataFrame()
+    output = output.append(world.states)
+    output['orig_reward'] = reward
+    output['maxent_reward'] = reward_maxent
+    output['maxcausal_reward'] = reward_maxcausal
+    print(output)
 
+    fig = plt.figure()
+    fig.suptitle('Interated Prisoners Dilemma (Tit-for-Tat) using IRL')
+    P.plot_rewards(fig, reward, reward_maxent, reward_maxcausal)
+    plt.show()
 
 if __name__ == '__main__':
     main()

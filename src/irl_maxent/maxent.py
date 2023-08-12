@@ -96,8 +96,8 @@ def expected_svf_from_policy(p_transition, p_initial, terminal, p_action, eps=1e
     # 'fix' our transition probabilities to allow for convergence
     # we will _never_ leave any terminal state
     p_transition = np.copy(p_transition)
-    # infinite horizon so no terminal state
-    #p_transition[terminal, :, :] = 0.0
+    if type(terminal) is list:
+        p_transition[terminal, :, :] = 0.0
 
     # set-up transition matrices for each action
     p_transition = [np.array(p_transition[:, :, a]) for a in range(n_actions)]
@@ -106,13 +106,18 @@ def expected_svf_from_policy(p_transition, p_initial, terminal, p_action, eps=1e
     d = np.zeros(n_states)
 
     delta = np.inf
-    #while delta > eps:
-    # Infinite horizon so use iterations
-    for _ in range(terminal):
+    i = 0
+    while delta > eps:
         d_ = [p_transition[a].T.dot(p_action[:, a] * d) for a in range(n_actions)]
         d_ = p_initial + np.array(d_).sum(axis=0)
 
         delta, d = np.max(np.abs(d_ - d)), d_
+
+        # Infinite horizon so use iterations
+        if type(terminal) is not list:
+            if i >= terminal:
+                break
+            i += 1
 
     return d
 
@@ -146,12 +151,14 @@ def local_action_probabilities(p_transition, terminal, reward):
     p = [np.array(p_transition[:, :, a]) for a in range(n_actions)]
 
     # initialize at terminal states
-    if terminal is list:
+    if type(terminal) is list:
         zs = np.zeros(n_states)
         zs[terminal] = 1.0
+        i = 2 * n_states
     else:
     # Infinite horizon so any state can be terminal
         zs = np.ones(n_states)
+        i = terminal
 
 
     # perform backward pass
@@ -159,9 +166,7 @@ def local_action_probabilities(p_transition, terminal, reward):
     # number of steps is chosen to reflect the maximum steps required to
     # guarantee propagation from any state to any other state and back in an
     # arbitrary MDP defined by p_transition.
-    #for _ in range(2 * n_states):
-    # Infinite horizon so use iterations
-    for _ in range(terminal):
+    for _ in range(i):
         za = np.array([er * p[a].dot(zs) for a in range(n_actions)]).T
         zs = za.sum(axis=1)
 
@@ -321,7 +326,7 @@ def local_causal_action_probabilities(p_transition, terminal, reward, discount, 
 
     # set up terminal reward function
     # Infinite horizon so any state can be terminal
-    if terminal is not list:
+    if type(terminal) is not list:
         reward_terminal = np.zeros(n_states, dtype=float)
     elif len(terminal) == n_states:
         reward_terminal = np.array(terminal, dtype=float)
